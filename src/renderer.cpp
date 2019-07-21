@@ -38,3 +38,12 @@ Renderer::~Renderer() {
     SDL_DestroyWindow(sdl_window);
     SDL_Quit();
 }
+
+void Renderer::Render() {
+    // Clear screen
+    SDL_SetRenderDrawColor(sdl_renderer, 0x1E, 0x1E, 0x1E, 0xFF);
+    SDL_RenderClear(sdl_renderer);
+
+    // Update Screen
+    SDL_RenderPresent(sdl_renderer);    
+}

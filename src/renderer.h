@@ -14,7 +14,7 @@ class Renderer {
     ~Renderer();
 
     // Call to render objects of the game
-    //void Render(const Game &game);
+    void Render();
 
     // Call to update game status to Title bar
     //void UpdateWindowTitle();
