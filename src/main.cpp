@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "controller.h"
+#include "game.h"
 #include "renderer.h"
 
 int main(int argc, char *argv[]) {
@@ -9,13 +10,9 @@ int main(int argc, char *argv[]) {
 
     Renderer renderer(screenWidth, screenHeight);
     Controller controller;
-
-    bool quit;
-    while(!quit) {
-        controller.HandleInput(quit);
-        renderer.Render();
-        SDL_Delay(1000);
-    }
+    Game game(renderer, controller);
+    game.Run();
     
+    std::cout << "Game has terminated successfully!" << std::endl;
     return 0;
 }
