@@ -1,6 +1,8 @@
+#include <algorithm>
 #include <iostream>
 
 #include "renderer.h"
+#include "SDL_image.h"
 
 Renderer::Renderer(const std::size_t screen_width, 
                    const std::size_t screen_height) 
@@ -12,6 +14,15 @@ Renderer::Renderer(const std::size_t screen_width,
         std::cerr << "SDL cound not initialize." << std::endl;
         std::cerr << "SDL_Error: " << SDL_GetError() << std::endl;
     }
+
+    // Initialize SDL_image
+    int flags=IMG_INIT_JPG|IMG_INIT_PNG;
+    int initted=IMG_Init(flags);
+    if ((initted&flags) != flags) {
+        std::cerr << "SDL_image couuld not initialize." << std::endl;
+        std::cerr << "SDL_image Error: " << IMG_GetError() << std::endl;
+    }
+    sdl_image_ready = true;
 
     // Create Window
     // Window is located on the center of the screen.
@@ -35,15 +46,42 @@ Renderer::Renderer(const std::size_t screen_width,
 }
 
 Renderer::~Renderer() {
+    // Destroy window
     SDL_DestroyWindow(sdl_window);
+
+    // clean up SDL_image
+    IMG_Quit();
+
+    // clean up SDL
     SDL_Quit();
 }
 
-void Renderer::Render() {
+void Renderer::UpdateWindowTitle(std::string const &title) {
+    SDL_SetWindowTitle(sdl_window, title.c_str());
+}
+
+void Renderer::Render(std::vector<Sprite> const &sprites) {
     // Clear screen
     SDL_SetRenderDrawColor(sdl_renderer, 0x1E, 0x1E, 0x1E, 0xFF);
     SDL_RenderClear(sdl_renderer);
 
+    // Render sprites
+    for (auto &s : sprites) {
+        RenderSprite(s);
+    }
+
     // Update Screen
     SDL_RenderPresent(sdl_renderer);    
+}
+
+Sprite Renderer::CreateSprite(std::string image_filename) {
+    SDL_Texture *texture;
+    texture = IMG_LoadTexture(sdl_renderer, image_filename.c_str());
+    return Sprite(texture);
+}
+
+void Renderer::RenderSprite(Sprite const &sprite) {
+    SDL_Rect dest = sprite.GetRect();
+    SDL_Texture *texture = sprite.GetTexture();
+    SDL_RenderCopy(sdl_renderer, texture, NULL, &dest);
 }

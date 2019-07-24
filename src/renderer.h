@@ -1,6 +1,10 @@
 #pragma once
 
+#include <string>
+#include <vector>
+
 #include "SDL.h"
+#include "sprite.h"
 
 /*
  This class is responsible for rendering the game windows as well as all the 
@@ -13,11 +17,14 @@ class Renderer {
     Renderer(const std::size_t screen_width, const std::size_t screen_height);
     ~Renderer();
 
-    // Call to render objects of the game
-    void Render();
-
     // Call to update game status to Title bar
-    //void UpdateWindowTitle();
+    void UpdateWindowTitle(std::string const &title);
+
+    // Call to render objects of the game
+    void Render(std::vector<Sprite> const &sprites);
+
+    // Call to create a sprite from an image file
+    Sprite CreateSprite(std::string sprite_image_filename);
 
     private:
     SDL_Window *sdl_window;
@@ -25,4 +32,9 @@ class Renderer {
 
     const std::size_t screen_width;
     const std::size_t screen_height;
+
+    bool sdl_image_ready;
+
+    // Call to render a sprite
+    void RenderSprite(Sprite const &sprite);
 };
