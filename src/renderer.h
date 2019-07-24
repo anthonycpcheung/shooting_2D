@@ -14,11 +14,12 @@ class Renderer {
     public:
     // Constructor takes the required screen dimemsion and constructs the 
     // game window.
-    Renderer(const std::size_t screen_width, const std::size_t screen_height);
+    Renderer(std::size_t const screen_width, std::size_t const screen_height, 
+             std::string const &title);
     ~Renderer();
 
     // Call to update game status to Title bar
-    void UpdateWindowTitle(std::string const &title);
+    void UpdateWindowTitle(int fps);
 
     // Call to render objects of the game
     void Render(std::vector<Sprite> const &sprites);
@@ -30,8 +31,9 @@ class Renderer {
     SDL_Window *sdl_window;
     SDL_Renderer *sdl_renderer;
 
-    const std::size_t screen_width;
-    const std::size_t screen_height;
+    std::size_t const screen_width;
+    std::size_t const screen_height;
+    std::string const game_title;
 
     bool sdl_image_ready;
 

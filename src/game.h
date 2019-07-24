@@ -10,7 +10,7 @@ class Game {
     public:
     Game(Renderer &renderer, Controller const &controller);
     ~Game() {}
-    void Run();
+    void Run(std::size_t target_frame_duration);
 
     private:
     Renderer &renderer;

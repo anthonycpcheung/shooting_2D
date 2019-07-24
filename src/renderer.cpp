@@ -4,9 +4,12 @@
 #include "renderer.h"
 #include "SDL_image.h"
 
-Renderer::Renderer(const std::size_t screen_width, 
-                   const std::size_t screen_height) 
-    : screen_width{screen_width}, screen_height{screen_height} {
+Renderer::Renderer(std::size_t const screen_width, 
+                   std::size_t const screen_height,
+                   std::string const &title) 
+    : screen_width{screen_width}, 
+      screen_height{screen_height},
+      game_title{title} {
     const int rendererFlags{SDL_RENDERER_ACCELERATED};
 
     // Initialize SDL
@@ -28,7 +31,7 @@ Renderer::Renderer(const std::size_t screen_width,
     // Window is located on the center of the screen.
     // Use SDL_WINDOWPOS_UNDEFINED to let the OS position the window wherever 
     // it likes.
-    sdl_window = SDL_CreateWindow("2D Shooting", SDL_WINDOWPOS_CENTERED,
+    sdl_window = SDL_CreateWindow(game_title.c_str(), SDL_WINDOWPOS_CENTERED,
                                   SDL_WINDOWPOS_CENTERED, screen_width,
                                   screen_height, SDL_WINDOW_SHOWN);
     if (sdl_window == nullptr) {
@@ -56,7 +59,8 @@ Renderer::~Renderer() {
     SDL_Quit();
 }
 
-void Renderer::UpdateWindowTitle(std::string const &title) {
+void Renderer::UpdateWindowTitle(int fps) {
+    std::string title{game_title + " FPS: " + std::to_string(fps)};
     SDL_SetWindowTitle(sdl_window, title.c_str());
 }
 
