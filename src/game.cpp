@@ -15,17 +15,14 @@ void Game::Run(std::size_t target_frame_duration) {
     int frame_count = 0;
 
     int x{100}, y{100};
+    sprites[0].SetPosition(x, y);
 
     // The main game loop starts here
     // Each loop goes through Input, Update, and Render phases
     while(running) {
         frame_start = SDL_GetTicks();
 
-        controller.HandleInput(running);
-
-        sprites[0].MoveTo(x, y);
-        x++;
-        y++;
+        controller.HandleInput(running, sprites[0]);
 
         renderer.Render(sprites);
         

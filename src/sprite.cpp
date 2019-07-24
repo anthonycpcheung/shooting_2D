@@ -22,7 +22,27 @@ SDL_Texture *Sprite::GetTexture() const {
     return texture;
 }
 
-void Sprite::MoveTo(int new_x, int new_y) {
+void Sprite::SetPosition(int new_x, int new_y) {
     x = new_x;
     y = new_y;
+}
+
+void Sprite::Move(MoveDir dir) {
+    switch(dir) {
+        case MoveDir::UP:
+            y -= MOVE_STEP;
+            break;
+        case MoveDir::DOWN:
+            y += MOVE_STEP;
+            break;
+        case MoveDir::LEFT:
+            x -= MOVE_STEP;
+            break;
+        case MoveDir::RIGHT:
+            x += MOVE_STEP;
+            break;
+        default:
+            // nothing change
+            break;
+    }
 }

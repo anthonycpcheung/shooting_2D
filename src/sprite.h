@@ -7,6 +7,8 @@
 
 class Sprite {
     public:
+    enum class MoveDir { UP, DOWN, LEFT, RIGHT };
+
     Sprite(SDL_Texture *sprite_texture);
     Sprite(SDL_Texture *sprite_texture, int initial_x, int initial_y);
     //~Sprite();
@@ -15,9 +17,12 @@ class Sprite {
     SDL_Rect GetRect() const;
     SDL_Texture *GetTexture() const;
 
-    void MoveTo(int new_x, int new_y);
+    void Move(MoveDir dir);
+    void SetPosition(int new_x, int new_y);
 
     private:
     SDL_Texture *texture;
     int x, y, w, h;
+
+    int const MOVE_STEP{5};
 };
