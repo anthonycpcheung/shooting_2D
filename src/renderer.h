@@ -18,14 +18,17 @@ class Renderer {
              std::string const &title);
     ~Renderer();
 
-    // Call to update game status to Title bar
+    // Update game status to Title bar
     void UpdateWindowTitle(int fps);
 
-    // Call to render objects of the game
+    // Render objects of the game
     void Render(std::vector<Sprite> const &sprites);
 
-    // Call to create a sprite from an image file
-    Sprite CreateSprite(std::string sprite_image_filename);
+    // Create a sprite from an image file
+    SDL_Texture *LoadImage(std::string image_filename);
+
+    // Get screen size
+    void GetScreenSize(std::size_t &width, std::size_t &height) const;
 
     private:
     SDL_Window *sdl_window;

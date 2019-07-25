@@ -9,8 +9,8 @@ class Sprite {
     public:
     enum class MoveDir { UP, DOWN, LEFT, RIGHT };
 
-    Sprite(SDL_Texture *sprite_texture);
-    Sprite(SDL_Texture *sprite_texture, int initial_x, int initial_y);
+    Sprite(SDL_Texture *sprite_texture, int speed);
+    Sprite(SDL_Texture *sprite_texture, int speed, int initial_x, int initial_y);
     //~Sprite();
 
     // For used by Renderer to render the sprite
@@ -19,10 +19,13 @@ class Sprite {
 
     void Move(MoveDir dir);
     void SetPosition(int new_x, int new_y);
+    void SetShow(bool toShow);
+    bool GetShow() const;
+    int GetSpeed() const;
 
     private:
     SDL_Texture *texture;
     int x, y, w, h;
-
-    int const MOVE_STEP{5};
+    int speed;
+    bool show;
 };

@@ -1,14 +1,14 @@
 #include "sprite.h"
 
-Sprite::Sprite(SDL_Texture *texture)
-    : texture{texture}, x{0}, y{0}
+Sprite::Sprite(SDL_Texture *texture, int speed)
+    : texture{texture}, speed{speed}, x{0}, y{0}, show{false}
 {
     // set width and height of sprite from the image
     SDL_QueryTexture(texture, NULL, NULL, &w, &h);
 }
 
-Sprite::Sprite(SDL_Texture *texture, int initial_x, int initial_y)
-    : texture{texture}, x{initial_x}, y{initial_y}
+Sprite::Sprite(SDL_Texture *texture, int speed, int initial_x, int initial_y)
+    : texture{texture}, speed{speed}, x{initial_x}, y{initial_y}, show{false}
 {
     // set width and height of sprite from the image
     SDL_QueryTexture(texture, NULL, NULL, &w, &h);
@@ -27,19 +27,31 @@ void Sprite::SetPosition(int new_x, int new_y) {
     y = new_y;
 }
 
+void Sprite::SetShow(bool toShow) {
+    show = toShow;
+}
+
+bool Sprite::GetShow() const {
+    return show;
+}
+
+int Sprite::GetSpeed() const {
+    return speed;
+}
+
 void Sprite::Move(MoveDir dir) {
     switch(dir) {
         case MoveDir::UP:
-            y -= MOVE_STEP;
+            y -= speed;
             break;
         case MoveDir::DOWN:
-            y += MOVE_STEP;
+            y += speed;
             break;
         case MoveDir::LEFT:
-            x -= MOVE_STEP;
+            x -= speed;
             break;
         case MoveDir::RIGHT:
-            x += MOVE_STEP;
+            x += speed;
             break;
         default:
             // nothing change

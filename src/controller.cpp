@@ -1,7 +1,6 @@
 #include "controller.h"
-#include "SDL.h"
 
-void Controller::HandleInput(bool &runningFlag, Sprite &player) const {
+void Controller::ProcessEvent(bool &runningFlag, Actions &actions) const {
     SDL_Event event;
 
     while (SDL_PollEvent(&event)) {
@@ -10,29 +9,60 @@ void Controller::HandleInput(bool &runningFlag, Sprite &player) const {
                 runningFlag = false;
                 return;
             case SDL_KEYDOWN:
-                MovePlayer(player, event.key.keysym.sym);
+                if (event.key.repeat == 0) {
+                    HandleKeyDown(event.key.keysym.sym, actions);
+                }
+                break;
+            case SDL_KEYUP:
+                if (event.key.repeat == 0) {
+                    HandleKeyUp(event.key.keysym.sym, actions);
+                }
             default:
                 break; // start next loop
         }
     }
 }
 
-void Controller::MovePlayer(Sprite &player, SDL_Keycode const keycode) const {
-    switch(keycode) {
-        case SDLK_UP:
-            player.Move(Sprite::MoveDir::UP);
-            break;
-        case SDLK_DOWN:
-            player.Move(Sprite::MoveDir::DOWN);
-            break;
-        case SDLK_LEFT:
-            player.Move(Sprite::MoveDir::LEFT);
-            break;
-        case SDLK_RIGHT:
-            player.Move(Sprite::MoveDir::RIGHT);
-            break;
-        default:
-            // do nothing
-            break;
+void Controller::HandleKeyDown(SDL_Keycode const &keycode, Actions &actions) const {
+    if (keycode == SDLK_UP) {
+        actions.UP = true;
+    }
+
+    if (keycode == SDLK_DOWN) {
+        actions.DOWN = true;
+    }
+
+    if (keycode == SDLK_LEFT) {
+        actions.LEFT = true;
+    }
+
+    if (keycode == SDLK_RIGHT) {
+        actions.RIGHT = true;
+    }
+
+    if (keycode == SDLK_SPACE) {
+        actions.FIRE = true;
+    }
+}
+
+void Controller::HandleKeyUp(SDL_Keycode const &keycode, Actions &actions) const {
+    if (keycode == SDLK_UP) {
+        actions.UP = false;
+    }
+
+    if (keycode == SDLK_DOWN) {
+        actions.DOWN = false;
+    }
+
+    if (keycode == SDLK_LEFT) {
+        actions.LEFT = false;
+    }
+
+    if (keycode == SDLK_RIGHT) {
+        actions.RIGHT = false;
+    }
+
+    if (keycode == SDLK_SPACE) {
+        actions.FIRE = false;
     }
 }

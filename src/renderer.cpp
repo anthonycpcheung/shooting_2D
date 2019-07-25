@@ -78,14 +78,21 @@ void Renderer::Render(std::vector<Sprite> const &sprites) {
     SDL_RenderPresent(sdl_renderer);    
 }
 
-Sprite Renderer::CreateSprite(std::string image_filename) {
+SDL_Texture *Renderer::LoadImage(std::string image_filename) {
     SDL_Texture *texture;
     texture = IMG_LoadTexture(sdl_renderer, image_filename.c_str());
-    return Sprite(texture);
+    return texture;
 }
 
 void Renderer::RenderSprite(Sprite const &sprite) {
-    SDL_Rect dest = sprite.GetRect();
-    SDL_Texture *texture = sprite.GetTexture();
-    SDL_RenderCopy(sdl_renderer, texture, NULL, &dest);
+    if (sprite.GetShow()) {
+        SDL_Rect dest = sprite.GetRect();
+        SDL_Texture *texture = sprite.GetTexture();
+        SDL_RenderCopy(sdl_renderer, texture, NULL, &dest);
+    }
+}
+
+void Renderer::GetScreenSize(std::size_t &width, std::size_t &height) const {
+    width = screen_width;
+    height = screen_height;
 }
