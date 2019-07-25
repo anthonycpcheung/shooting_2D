@@ -5,6 +5,7 @@
 class Controller {
     public:
     struct Actions {
+        bool QUIT{false};
         bool UP{false};
         bool DOWN{false};
         bool LEFT{false};
@@ -12,9 +13,11 @@ class Controller {
         bool FIRE{false};
     };
 
-    void ProcessEvent(bool &quitFlag, Actions &actions) const;
+    Actions ProcessEvent();
 
     private:
-    void HandleKeyDown(SDL_Keycode const &keycode, Actions &actions) const;
-    void HandleKeyUp(SDL_Keycode const &keycode, Actions &actions) const;
+    Actions actions;
+
+    void HandleKeyDown(SDL_Keycode const &keycode);
+    void HandleKeyUp(SDL_Keycode const &keycode);
 };

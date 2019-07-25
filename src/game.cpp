@@ -4,7 +4,7 @@ int constexpr PLAYER_SPEED{5};
 int constexpr BULLET_SPEED{8};
 Sprite::MoveDir constexpr PLAYER_BULLET_DIR{Sprite::MoveDir::RIGHT};
 
-Game::Game(Renderer &renderer, Controller const &controller) 
+Game::Game(Renderer &renderer, Controller &controller) 
     : renderer{renderer}, controller{controller} 
 {
 }
@@ -26,16 +26,15 @@ void Game::Run(std::size_t target_frame_duration) {
     player.SetPosition(x, y);
     player.SetShow(true);
 
-    Controller::Actions playerActions;
-
     // The main game loop starts here
     // Each loop goes through Input, Update, and Render phases
     while(running) {
         frame_start = SDL_GetTicks();
 
-        controller.ProcessEvent(running, playerActions);
+        auto actions = controller.ProcessEvent();
+        running = !actions.QUIT;
 
-        UpdatePlayerObjects(playerActions);
+        UpdatePlayerObjects(actions);
         UpdateNonplayerObjects();
 
         renderer.Render(sprites);

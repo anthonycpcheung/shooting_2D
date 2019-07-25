@@ -1,29 +1,31 @@
 #include "controller.h"
 
-void Controller::ProcessEvent(bool &runningFlag, Actions &actions) const {
+Controller::Actions Controller::ProcessEvent() {
     SDL_Event event;
 
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
             case SDL_QUIT:
-                runningFlag = false;
-                return;
+                actions.QUIT = true;
+                return actions;
             case SDL_KEYDOWN:
                 if (event.key.repeat == 0) {
-                    HandleKeyDown(event.key.keysym.sym, actions);
+                    HandleKeyDown(event.key.keysym.sym);
                 }
                 break;
             case SDL_KEYUP:
                 if (event.key.repeat == 0) {
-                    HandleKeyUp(event.key.keysym.sym, actions);
+                    HandleKeyUp(event.key.keysym.sym);
                 }
             default:
-                break; // start next loop
+                break;
         }
     }
+
+    return actions;
 }
 
-void Controller::HandleKeyDown(SDL_Keycode const &keycode, Actions &actions) const {
+void Controller::HandleKeyDown(SDL_Keycode const &keycode) {
     if (keycode == SDLK_UP) {
         actions.UP = true;
     }
@@ -45,7 +47,7 @@ void Controller::HandleKeyDown(SDL_Keycode const &keycode, Actions &actions) con
     }
 }
 
-void Controller::HandleKeyUp(SDL_Keycode const &keycode, Actions &actions) const {
+void Controller::HandleKeyUp(SDL_Keycode const &keycode) {
     if (keycode == SDLK_UP) {
         actions.UP = false;
     }
