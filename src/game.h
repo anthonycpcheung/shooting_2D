@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iostream>
+#include <unordered_map>
 #include <vector>
 
 #include "controller.h"
@@ -16,9 +16,9 @@ class Game {
     private:
     Renderer &renderer;
     Controller &controller;
-    std::vector<Sprite> sprites;
 
-    Sprite CreateSprite(std::string sprite_image_filename, int speed);
-    void UpdatePlayerObjects(Controller::Actions const &action);
+    Sprite CreateSprite(std::string tag, int speed);
+    void UpdatePlayerObjects(Controller::Actions const &action, Fighter &player, 
+                             std::vector<Bullet> &bullets);
     void UpdateNonplayerObjects();
 };

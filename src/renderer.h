@@ -22,7 +22,9 @@ class Renderer {
     void UpdateWindowTitle(int fps);
 
     // Render objects of the game
-    void Render(std::vector<Sprite> const &sprites);
+    void BeginRender();
+    void EndRender();
+    void RenderSprite(Sprite const &sprite);
 
     // Create a sprite from an image file
     SDL_Texture *LoadImage(std::string image_filename);
@@ -39,7 +41,4 @@ class Renderer {
     std::string const game_title;
 
     bool sdl_image_ready;
-
-    // Call to render a sprite
-    void RenderSprite(Sprite const &sprite);
 };

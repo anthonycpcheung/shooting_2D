@@ -64,16 +64,13 @@ void Renderer::UpdateWindowTitle(int fps) {
     SDL_SetWindowTitle(sdl_window, title.c_str());
 }
 
-void Renderer::Render(std::vector<Sprite> const &sprites) {
+void Renderer::BeginRender() {
     // Clear screen
     SDL_SetRenderDrawColor(sdl_renderer, 0x1E, 0x1E, 0x1E, 0xFF);
     SDL_RenderClear(sdl_renderer);
+}
 
-    // Render sprites
-    for (auto &s : sprites) {
-        RenderSprite(s);
-    }
-
+void Renderer::EndRender() {
     // Update Screen
     SDL_RenderPresent(sdl_renderer);    
 }
@@ -85,11 +82,9 @@ SDL_Texture *Renderer::LoadImage(std::string image_filename) {
 }
 
 void Renderer::RenderSprite(Sprite const &sprite) {
-    if (sprite.GetShow()) {
-        SDL_Rect dest = sprite.GetRect();
-        SDL_Texture *texture = sprite.GetTexture();
-        SDL_RenderCopy(sdl_renderer, texture, NULL, &dest);
-    }
+    SDL_Rect dest = sprite.GetRect();
+    SDL_Texture *texture = sprite.GetTexture();
+    SDL_RenderCopy(sdl_renderer, texture, NULL, &dest);
 }
 
 void Renderer::GetScreenSize(std::size_t &width, std::size_t &height) const {
