@@ -1,8 +1,16 @@
+#include <algorithm>
+#include <iostream>
+
 #include "game.h"
 
-int constexpr PLAYER_SPEED{5};
+int constexpr PLAYER_SPEED{4};
 int constexpr BULLET_SPEED{8};
-Sprite::MoveDir constexpr PLAYER_BULLET_DIR{Sprite::MoveDir::RIGHT};
+int constexpr BULLET_RELOAD{8};
+MoveDir constexpr PLAYER_BULLET_DIR{MoveDir::RIGHT};
+
+std::string const TEXTURE_BASE{"../gfx/"};
+std::string const PLAYER_TAG{"player.png"};
+std::string const PLAYER_BULLET_TAG{"playerBullet.png"};
 
 Game::Game(Renderer &renderer, Controller &controller) 
     : renderer{renderer}, controller{controller} 
@@ -17,14 +25,17 @@ void Game::Run(std::size_t target_frame_duration) {
     Uint32 title_timestamp = SDL_GetTicks();
     int frame_count = 0;
 
-    sprites.emplace_back(CreateSprite("../gfx/player.png", PLAYER_SPEED));
-    sprites.emplace_back(CreateSprite("../gfx/playerBullet.png", BULLET_SPEED));
-    auto &player = sprites[0];
-    auto &playerBullet = sprites[1];
+    // Pre-load game objects images
+    std::unordered_map<std::string, SDL_Texture *> textures;
+    textures[PLAYER_TAG] = renderer.LoadImage(TEXTURE_BASE + PLAYER_TAG);
+    textures[PLAYER_BULLET_TAG] = renderer.LoadImage(TEXTURE_BASE + PLAYER_BULLET_TAG);
 
-    int x{100}, y{100};
-    player.SetPosition(x, y);
-    player.SetShow(true);
+    // Initialize player
+    Fighter player{renderer.LoadImage(TEXTURE_BASE + PLAYER_TAG), 
+                   PLAYER_SPEED, BULLET_RELOAD};
+    std::vector<Bullet> player_bullets;
+
+    player.SetPosition(100, 100);
 
     // The main game loop starts here
     // Each loop goes through Input, Update, and Render phases
@@ -34,10 +45,20 @@ void Game::Run(std::size_t target_frame_duration) {
         auto actions = controller.ProcessEvent();
         running = !actions.QUIT;
 
-        UpdatePlayerObjects(actions);
+        UpdatePlayerObjects(actions, player, player_bullets);
         UpdateNonplayerObjects();
 
-        renderer.Render(sprites);
+        renderer.BeginRender();
+
+        // Render player
+        renderer.RenderSprite(player);
+
+        // Render player bullets
+        for (auto &bullet : player_bullets) {
+            renderer.RenderSprite(bullet);
+        }
+
+        renderer.EndRender();
         
         frame_end = SDL_GetTicks();
 
@@ -62,63 +83,57 @@ void Game::Run(std::size_t target_frame_duration) {
     }
 }
 
-void Game::UpdatePlayerObjects(Controller::Actions const &actions) {
-    Sprite &player = sprites[0];
-    Sprite &player_bullet = sprites[1];
+void Game::UpdatePlayerObjects(Controller::Actions const &actions, 
+                               Fighter &player, 
+                               std::vector<Bullet> &bullets) {
 
     std::size_t width_bound, height_bound;
     renderer.GetScreenSize(width_bound, height_bound);
 
+    // Move player
     if (actions.UP) {
-        player.Move(Sprite::MoveDir::UP);
+        player.MoveWithBoundFix(MoveDir::UP, width_bound, height_bound);
     }
 
     if (actions.DOWN) {
-        player.Move(Sprite::MoveDir::DOWN);
+        player.MoveWithBoundFix(MoveDir::DOWN, width_bound, height_bound);
     }
 
     if (actions.LEFT) {
-        player.Move(Sprite::MoveDir::LEFT);
+        player.MoveWithBoundFix(MoveDir::LEFT, width_bound, height_bound);
     }
 
     if (actions.RIGHT) {
-        player.Move(Sprite::MoveDir::RIGHT);
+        player.MoveWithBoundFix(MoveDir::RIGHT, width_bound, height_bound);
     }
 
-    bool new_bullet = false;
-    if (actions.FIRE) {
-        if (!player_bullet.GetShow()) {
-            // bullet emitted from player
-            SDL_Rect player_rect = player.GetRect();
-            SDL_Rect bullet_rect = player_bullet.GetRect();
-            int bullet_x = player_rect.x + player_rect.w;
-            int bullet_y = player_rect.y + (player_rect.h - bullet_rect.h) / 2;
-            player_bullet.SetPosition(bullet_x, bullet_y);
-            player_bullet.SetShow(true);
-            new_bullet = true;
-        }
+    // Move flying bullets
+    for (auto &b : bullets) {
+        b.Move(PLAYER_BULLET_DIR);
     }
 
-    if (player_bullet.GetShow() && !new_bullet) {
-        // bullet is flying
-        player_bullet.Move(PLAYER_BULLET_DIR);
-
-        // Check whether the bullet flies out the screen.
-        // If yes, set it as not showing
-        SDL_Rect bullet_rect = player_bullet.GetRect();
-        if (bullet_rect.x > width_bound) {
-            player_bullet.SetShow(false);
-        }
+    // Fire new bullet
+    if (player.CheckReload() && actions.FIRE) {
+        Bullet new_bullet{renderer.LoadImage(TEXTURE_BASE + PLAYER_BULLET_TAG), 
+                          BULLET_SPEED};
+        SDL_Rect player_rect_new = player.GetRect();
+        SDL_Rect bullet_rect = new_bullet.GetRect();
+        int bullet_x = player_rect_new.x + player_rect_new.w;
+        int bullet_y = player_rect_new.y + (player_rect_new.h - bullet_rect.h) / 2;
+        new_bullet.SetPosition(bullet_x, bullet_y);
+        bullets.push_back(std::move(new_bullet));
+        player.Fired();
     }
+
+    // Check whether the bullet flies out the screen.
+    // If yes, remove it
+    std::remove_if(bullets.begin(), bullets.end(),
+    [width_bound](Bullet const &b) {
+        SDL_Rect b_rect = b.GetRect();
+        return (b_rect.x > width_bound);
+    });
 }
 
 void Game::UpdateNonplayerObjects() {
 
-}
-
-Sprite Game::CreateSprite(std::string sprite_image_filename, int speed) 
-{
-    SDL_Texture *texture;
-    texture = renderer.LoadImage(sprite_image_filename.c_str());
-    return Sprite(texture, speed);
 }

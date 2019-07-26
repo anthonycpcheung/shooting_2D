@@ -1,14 +1,14 @@
 #include "sprite.h"
 
 Sprite::Sprite(SDL_Texture *texture, int speed)
-    : texture{texture}, speed{speed}, x{0}, y{0}, show{false}
+    : texture{texture}, speed{speed}, x{0}, y{0}, hit{false}
 {
     // set width and height of sprite from the image
     SDL_QueryTexture(texture, NULL, NULL, &w, &h);
 }
 
 Sprite::Sprite(SDL_Texture *texture, int speed, int initial_x, int initial_y)
-    : texture{texture}, speed{speed}, x{initial_x}, y{initial_y}, show{false}
+    : texture{texture}, speed{speed}, x{initial_x}, y{initial_y}, hit{false}
 {
     // set width and height of sprite from the image
     SDL_QueryTexture(texture, NULL, NULL, &w, &h);
@@ -27,12 +27,12 @@ void Sprite::SetPosition(int new_x, int new_y) {
     y = new_y;
 }
 
-void Sprite::SetShow(bool toShow) {
-    show = toShow;
+void Sprite::SetHit() {
+    hit = true;
 }
 
-bool Sprite::GetShow() const {
-    return show;
+bool Sprite::GetHit() const {
+    return hit;
 }
 
 int Sprite::GetSpeed() const {
@@ -58,3 +58,52 @@ void Sprite::Move(MoveDir dir) {
             break;
     }
 }
+
+void Sprite::MoveWithBoundFix(MoveDir dir, int bound_width, int bound_height) {
+    Move(dir);
+
+    if (x < 0) {
+        x = 0;
+    }
+    else if ((x + w) > bound_width) {
+        x = bound_width - w;
+    }
+    
+    if (y < 0) {
+        y = 0;
+    }
+    else if ((y + h) > bound_height) {
+        y = bound_height - h;
+    }
+}
+
+Fighter::Fighter(SDL_Texture *sprite_texture, int speed, int reload)
+    : Sprite{sprite_texture, speed}, 
+    reload{reload}, reloadCounter{0}
+{}
+
+Fighter::Fighter(SDL_Texture *sprite_texture, int speed, 
+                 int initial_x, int initial_y, int reload)
+    : Sprite{sprite_texture, speed, initial_x, initial_y}, 
+    reload{reload}, reloadCounter{0}
+{}
+
+bool Fighter::CheckReload() {
+    if (reloadCounter > 0) {
+        --reloadCounter;
+    }
+    return (reloadCounter == 0);
+}
+
+void Fighter::Fired() {
+    reloadCounter = reload;
+}
+
+Bullet::Bullet(SDL_Texture *sprite_texture, int speed)
+    : Sprite{sprite_texture, speed}
+{}
+
+Bullet::Bullet(SDL_Texture *sprite_texture, int speed, 
+               int initial_x, int initial_y)
+    : Sprite{sprite_texture, speed, initial_x, initial_y}
+{}
