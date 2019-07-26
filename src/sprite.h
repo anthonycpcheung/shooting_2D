@@ -30,24 +30,3 @@ class Sprite {
     int speed;
     bool hit;
 };
-
-class Fighter : public Sprite {
-    public:
-    Fighter(SDL_Texture *sprite_texture, int speed, int reload);
-    Fighter(SDL_Texture *sprite_texture, int speed, 
-            int initial_x, int initial_y, int reload);
-
-    bool CheckReload();
-    void Fired();
-
-    private:
-    int const reload;
-    int reloadCounter;
-};
-
-class Bullet : public Sprite {
-    public:
-    Bullet(SDL_Texture *sprite_texture, int speed);
-    Bullet(SDL_Texture *sprite_texture, int speed, 
-            int initial_x, int initial_y);
-};

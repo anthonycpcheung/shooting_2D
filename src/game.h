@@ -3,7 +3,9 @@
 #include <unordered_map>
 #include <vector>
 
+#include "bullet.h"
 #include "controller.h"
+#include "fighter.h"
 #include "renderer.h"
 #include "sprite.h"
 

@@ -76,34 +76,3 @@ void Sprite::MoveWithBoundFix(MoveDir dir, int bound_width, int bound_height) {
         y = bound_height - h;
     }
 }
-
-Fighter::Fighter(SDL_Texture *sprite_texture, int speed, int reload)
-    : Sprite{sprite_texture, speed}, 
-    reload{reload}, reloadCounter{0}
-{}
-
-Fighter::Fighter(SDL_Texture *sprite_texture, int speed, 
-                 int initial_x, int initial_y, int reload)
-    : Sprite{sprite_texture, speed, initial_x, initial_y}, 
-    reload{reload}, reloadCounter{0}
-{}
-
-bool Fighter::CheckReload() {
-    if (reloadCounter > 0) {
-        --reloadCounter;
-    }
-    return (reloadCounter == 0);
-}
-
-void Fighter::Fired() {
-    reloadCounter = reload;
-}
-
-Bullet::Bullet(SDL_Texture *sprite_texture, int speed)
-    : Sprite{sprite_texture, speed}
-{}
-
-Bullet::Bullet(SDL_Texture *sprite_texture, int speed, 
-               int initial_x, int initial_y)
-    : Sprite{sprite_texture, speed, initial_x, initial_y}
-{}
