@@ -1,7 +1,7 @@
 #pragma once
 
+#include <forward_list>
 #include <random>
-#include <vector>
 
 #include "SDL.h"
 #include "bullet.h"
@@ -25,10 +25,15 @@ class Game {
     int enemySpwanTimer;
     
     void UpdatePlayerObjects(Controller::Actions const &action, Fighter &player, 
-                             std::vector<Bullet> &bullets);
-    void UpdateNonplayerObjects(std::vector<Fighter> &enemies,
-                                std::vector<Bullet> &bullets,
+                             std::forward_list<Bullet> &bullets);
+    void UpdateNonplayerObjects(std::forward_list<Fighter> &enemies,
+                                std::forward_list<Bullet> &bullets,
                                 std::mt19937 &eng);
+    void UpdateHitEnemies(std::forward_list<Bullet> &bullets, 
+                          std::forward_list<Fighter> &enemies);
+    void ClearInvalidObjects(std::forward_list<Fighter> &enemies,
+                             std::forward_list<Bullet> &player_bullets,
+                             std::forward_list<Bullet> &enemy_bullets);
 
     void PreloadTextures();
 

@@ -28,11 +28,11 @@ void Game::Run(std::size_t target_frame_duration) {
 
     // Initialize player
     Fighter player{player_texture, PLAYER_SPEED};
-    std::vector<Bullet> player_bullets;
+    std::forward_list<Bullet> player_bullets;
 
     // Initialize enemies
-    std::vector<Fighter> enemies;
-    std::vector<Bullet> enemy_bullets;
+    std::forward_list<Fighter> enemies;
+    std::forward_list<Bullet> enemy_bullets;
 
     player.SetPosition(100, 100);
 
@@ -46,6 +46,8 @@ void Game::Run(std::size_t target_frame_duration) {
 
         UpdatePlayerObjects(actions, player, player_bullets);
         UpdateNonplayerObjects(enemies, enemy_bullets, eng);
+        UpdateHitEnemies(player_bullets, enemies);
+        ClearInvalidObjects(enemies, player_bullets, enemy_bullets);
 
         renderer.BeginRender();
 
@@ -94,7 +96,7 @@ void Game::Run(std::size_t target_frame_duration) {
 
 void Game::UpdatePlayerObjects(Controller::Actions const &actions, 
                                Fighter &player, 
-                               std::vector<Bullet> &bullets) {
+                               std::forward_list<Bullet> &bullets) {
     int constexpr BULLET_SPEED{8};
 
     std::size_t width_bound, height_bound;
@@ -130,21 +132,13 @@ void Game::UpdatePlayerObjects(Controller::Actions const &actions,
         int bullet_x = player_rect_new.x + player_rect_new.w;
         int bullet_y = player_rect_new.y + (player_rect_new.h - bullet_rect.h) / 2;
         new_bullet.SetPosition(bullet_x, bullet_y);
-        bullets.push_back(std::move(new_bullet));
+        bullets.push_front(std::move(new_bullet));
         player.Fired();
     }
-
-    // Check whether the bullet flies out the screen.
-    // If yes, remove it
-    std::remove_if(bullets.begin(), bullets.end(),
-    [width_bound](Bullet const &b) {
-        SDL_Rect b_rect = b.GetRect();
-        return (b_rect.x > width_bound);
-    });
 }
 
-void Game::UpdateNonplayerObjects(std::vector<Fighter> &enemies, 
-                                  std::vector<Bullet> &bullets,
+void Game::UpdateNonplayerObjects(std::forward_list<Fighter> &enemies, 
+                                  std::forward_list<Bullet> &bullets,
                                   std::mt19937 &eng) {
     int constexpr MIN_SPWAN_TIME{30};
     int constexpr MAX_SPWAN_TIME{90};
@@ -159,26 +153,10 @@ void Game::UpdateNonplayerObjects(std::vector<Fighter> &enemies,
         e.Move(MoveDir::LEFT);
     }
 
-    // Check whether the enemy flies out the screen.
-    // If yes, remove it
-    std::remove_if(enemies.begin(), enemies.end(),
-    [](Fighter const &e) {
-        SDL_Rect e_rect = e.GetRect();
-        return ((e_rect.x + e_rect.w) <= 0);
-    });
-
     // Move flying bullets
     for (auto &b : bullets) {
         b.Move(MoveDir::LEFT);
     }
-
-    // Check whether the bullet flies out the screen.
-    // If yes, remove it
-    std::remove_if(bullets.begin(), bullets.end(),
-    [](Bullet const &b) {
-        SDL_Rect b_rect = b.GetRect();
-        return ((b_rect.x + b_rect.w) <= 0);
-    });
 
     // Spwan new enemy
     if (--enemySpwanTimer <= 0) {
@@ -198,7 +176,7 @@ void Game::UpdateNonplayerObjects(std::vector<Fighter> &enemies,
             pos_y = max_y;
         }
         new_enemy.SetPosition(width_bound, random_position(eng));
-        enemies.push_back(std::move(new_enemy));
+        enemies.push_front(std::move(new_enemy));
 
         enemySpwanTimer = random_spwan(eng);
     }
@@ -219,4 +197,48 @@ bool Game::CheckCollision(SDL_Rect const &rect1, SDL_Rect const &rect2) {
                 < std::min(rect1.x + rect1.w, rect2.x + rect2.w)) && 
            (std::max(rect1.y, rect2.y) 
                 < std::min(rect1.y + rect1.h, rect2.y + rect2.h));
+}
+
+void Game::UpdateHitEnemies(std::forward_list<Bullet> &bullets, 
+                            std::forward_list<Fighter> &enemies) {
+    for (auto &b : bullets) {
+        for (auto &e : enemies) {
+            if (CheckCollision(b.GetRect(), e.GetRect())) {
+                b.SetHit();
+                e.SetHit();
+            }
+        }
+    }
+}
+
+void Game::ClearInvalidObjects(std::forward_list<Fighter> &enemies,
+                               std::forward_list<Bullet> &player_bullets,
+                               std::forward_list<Bullet> &enemy_bullets) {
+    std::size_t width_bound, height_bound;
+    renderer.GetScreenSize(width_bound, height_bound);
+
+    // Check whether the enemy gets hit or flies out the screen.
+    // If yes, remove it
+    enemies.remove_if(
+    [](Fighter &e) {
+        SDL_Rect e_rect = e.GetRect();
+        return e.GetHit() || ((e_rect.x + e_rect.w) <= 0);
+    });
+
+    // Check whether the bullet get hit or flies out the screen.
+    // If yes, remove it
+    enemy_bullets.remove_if(
+    [](Bullet &eb) {
+        SDL_Rect eb_rect = eb.GetRect();
+        return eb.GetHit() || ((eb_rect.x + eb_rect.w) <= 0);
+    });
+
+    // Check whether the bullet get hit or flies out the screen.
+    // If yes, remove it
+    player_bullets.remove_if(
+    [width_bound](Bullet &pb) {
+        SDL_Rect pb_rect = pb.GetRect();
+        return pb.GetHit() || (pb_rect.x > width_bound);
+    });
+
 }
