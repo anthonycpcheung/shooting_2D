@@ -1,8 +1,9 @@
 #pragma once
 
-#include <unordered_map>
+#include <random>
 #include <vector>
 
+#include "SDL.h"
 #include "bullet.h"
 #include "controller.h"
 #include "fighter.h"
@@ -18,9 +19,18 @@ class Game {
     private:
     Renderer &renderer;
     Controller &controller;
-
-    Sprite CreateSprite(std::string tag, int speed);
+    SDL_Texture *player_texture;
+    SDL_Texture *player_bullet_texture;
+    SDL_Texture *enemy_texture;
+    int enemySpwanTimer;
+    
     void UpdatePlayerObjects(Controller::Actions const &action, Fighter &player, 
                              std::vector<Bullet> &bullets);
-    void UpdateNonplayerObjects();
+    void UpdateNonplayerObjects(std::vector<Fighter> &enemies,
+                                std::vector<Bullet> &bullets,
+                                std::mt19937 &eng);
+
+    void PreloadTextures();
+
+    bool CheckCollision(SDL_Rect const &rect1, SDL_Rect const &rect2);
 };

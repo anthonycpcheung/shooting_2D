@@ -13,7 +13,6 @@ class Sprite {
     Sprite(SDL_Texture *sprite_texture, int speed, 
            int initial_x, int initial_y);
 
-    // For used by Renderer to render the sprite
     SDL_Rect GetRect() const;
     SDL_Texture *GetTexture() const;
 

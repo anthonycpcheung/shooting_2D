@@ -1,23 +1,17 @@
 #include <algorithm>
 #include <iostream>
+#include <random>
 
 #include "game.h"
 
-int constexpr PLAYER_SPEED{4};
-int constexpr BULLET_SPEED{8};
-int constexpr BULLET_RELOAD{8};
-MoveDir constexpr PLAYER_BULLET_DIR{MoveDir::RIGHT};
-
-std::string const TEXTURE_BASE{"../gfx/"};
-std::string const PLAYER_TAG{"player.png"};
-std::string const PLAYER_BULLET_TAG{"playerBullet.png"};
-
 Game::Game(Renderer &renderer, Controller &controller) 
-    : renderer{renderer}, controller{controller} 
+    : renderer{renderer}, controller{controller}, enemySpwanTimer{90} 
 {
 }
 
 void Game::Run(std::size_t target_frame_duration) {
+    int constexpr PLAYER_SPEED{4};
+
     bool running = true;
     Uint32 frame_start;
     Uint32 frame_end;
@@ -25,15 +19,20 @@ void Game::Run(std::size_t target_frame_duration) {
     Uint32 title_timestamp = SDL_GetTicks();
     int frame_count = 0;
 
+    // Random generator for enemy spwan, enemy speed, and enemy position
+    std::random_device rd;
+    std::mt19937 eng(rd());
+
     // Pre-load game objects images
-    std::unordered_map<std::string, SDL_Texture *> textures;
-    textures[PLAYER_TAG] = renderer.LoadImage(TEXTURE_BASE + PLAYER_TAG);
-    textures[PLAYER_BULLET_TAG] = renderer.LoadImage(TEXTURE_BASE + PLAYER_BULLET_TAG);
+    PreloadTextures();
 
     // Initialize player
-    Fighter player{renderer.LoadImage(TEXTURE_BASE + PLAYER_TAG), 
-                   PLAYER_SPEED, BULLET_RELOAD};
+    Fighter player{player_texture, PLAYER_SPEED};
     std::vector<Bullet> player_bullets;
+
+    // Initialize enemies
+    std::vector<Fighter> enemies;
+    std::vector<Bullet> enemy_bullets;
 
     player.SetPosition(100, 100);
 
@@ -46,7 +45,7 @@ void Game::Run(std::size_t target_frame_duration) {
         running = !actions.QUIT;
 
         UpdatePlayerObjects(actions, player, player_bullets);
-        UpdateNonplayerObjects();
+        UpdateNonplayerObjects(enemies, enemy_bullets, eng);
 
         renderer.BeginRender();
 
@@ -55,6 +54,16 @@ void Game::Run(std::size_t target_frame_duration) {
 
         // Render player bullets
         for (auto &bullet : player_bullets) {
+            renderer.RenderSprite(bullet);
+        }
+
+        // Render enemies
+        for (auto &enemy : enemies) {
+            renderer.RenderSprite(enemy);
+        }
+
+        // Render enemy bullets
+        for (auto &bullet : enemy_bullets) {
             renderer.RenderSprite(bullet);
         }
 
@@ -86,6 +95,7 @@ void Game::Run(std::size_t target_frame_duration) {
 void Game::UpdatePlayerObjects(Controller::Actions const &actions, 
                                Fighter &player, 
                                std::vector<Bullet> &bullets) {
+    int constexpr BULLET_SPEED{8};
 
     std::size_t width_bound, height_bound;
     renderer.GetScreenSize(width_bound, height_bound);
@@ -109,13 +119,12 @@ void Game::UpdatePlayerObjects(Controller::Actions const &actions,
 
     // Move flying bullets
     for (auto &b : bullets) {
-        b.Move(PLAYER_BULLET_DIR);
+        b.Move(MoveDir::RIGHT);
     }
 
     // Fire new bullet
     if (player.CheckReload() && actions.FIRE) {
-        Bullet new_bullet{renderer.LoadImage(TEXTURE_BASE + PLAYER_BULLET_TAG), 
-                          BULLET_SPEED};
+        Bullet new_bullet{player_bullet_texture, BULLET_SPEED};
         SDL_Rect player_rect_new = player.GetRect();
         SDL_Rect bullet_rect = new_bullet.GetRect();
         int bullet_x = player_rect_new.x + player_rect_new.w;
@@ -134,6 +143,80 @@ void Game::UpdatePlayerObjects(Controller::Actions const &actions,
     });
 }
 
-void Game::UpdateNonplayerObjects() {
+void Game::UpdateNonplayerObjects(std::vector<Fighter> &enemies, 
+                                  std::vector<Bullet> &bullets,
+                                  std::mt19937 &eng) {
+    int constexpr MIN_SPWAN_TIME{30};
+    int constexpr MAX_SPWAN_TIME{90};
+    int constexpr MIN_ENEMY_SPEED{2};
+    int constexpr MAX_ENEMY_SPEED{6};
 
+    std::size_t width_bound, height_bound;
+    renderer.GetScreenSize(width_bound, height_bound);
+
+    // Move flying enemies
+    for (auto &e : enemies) {
+        e.Move(MoveDir::LEFT);
+    }
+
+    // Check whether the enemy flies out the screen.
+    // If yes, remove it
+    std::remove_if(enemies.begin(), enemies.end(),
+    [](Fighter const &e) {
+        SDL_Rect e_rect = e.GetRect();
+        return ((e_rect.x + e_rect.w) <= 0);
+    });
+
+    // Move flying bullets
+    for (auto &b : bullets) {
+        b.Move(MoveDir::LEFT);
+    }
+
+    // Check whether the bullet flies out the screen.
+    // If yes, remove it
+    std::remove_if(bullets.begin(), bullets.end(),
+    [](Bullet const &b) {
+        SDL_Rect b_rect = b.GetRect();
+        return ((b_rect.x + b_rect.w) <= 0);
+    });
+
+    // Spwan new enemy
+    if (--enemySpwanTimer <= 0) {
+        std::uniform_int_distribution<int> random_spwan(MIN_SPWAN_TIME, 
+                                                        MAX_SPWAN_TIME);
+        std::uniform_int_distribution<int> random_speed(MIN_ENEMY_SPEED, 
+                                                        MAX_ENEMY_SPEED);
+
+        Fighter new_enemy{enemy_texture, random_speed(eng)};
+
+        int max_y = height_bound - new_enemy.GetRect().h;
+
+        std::uniform_int_distribution<int> random_position(0, max_y);
+        int pos_y = random_position(eng);
+
+        if (pos_y > max_y) {
+            pos_y = max_y;
+        }
+        new_enemy.SetPosition(width_bound, random_position(eng));
+        enemies.push_back(std::move(new_enemy));
+
+        enemySpwanTimer = random_spwan(eng);
+    }
+}
+
+void Game::PreloadTextures() {
+    std::string const PLAYER_IMAGE{"../gfx/player.png"};
+    std::string const PLAYER_BULLET_IMAGE{"../gfx/playerBullet.png"};
+    std::string const ENEMY_IMAGE("../gfx/enemy.png");
+
+    player_texture = renderer.LoadImage(PLAYER_IMAGE);
+    player_bullet_texture = renderer.LoadImage(PLAYER_BULLET_IMAGE);
+    enemy_texture = renderer.LoadImage(ENEMY_IMAGE);
+}
+
+bool Game::CheckCollision(SDL_Rect const &rect1, SDL_Rect const &rect2) {
+    return (std::max(rect1.x, rect2.x) 
+                < std::min(rect1.x + rect1.w, rect2.x + rect2.w)) && 
+           (std::max(rect1.y, rect2.y) 
+                < std::min(rect1.y + rect1.h, rect2.y + rect2.h));
 }
