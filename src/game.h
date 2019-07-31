@@ -22,6 +22,7 @@ class Game {
     SDL_Texture *player_texture;
     SDL_Texture *player_bullet_texture;
     SDL_Texture *enemy_texture;
+    SDL_Texture *enemy_bullet_texture;
     int enemySpwanTimer;
     
     void UpdatePlayerObjects(Controller::Actions const &action, Fighter &player, 
@@ -29,8 +30,14 @@ class Game {
     void UpdateNonplayerObjects(std::forward_list<Fighter> &enemies,
                                 std::forward_list<Bullet> &bullets,
                                 std::mt19937 &eng);
-    void UpdateHitEnemies(std::forward_list<Bullet> &bullets, 
+    void BulletsHitEnemies(std::forward_list<Bullet> &bullets, 
                           std::forward_list<Fighter> &enemies);
+    void BulletsHitBullets(std::forward_list<Bullet> &player_bullets, 
+                          std::forward_list<Bullet> &enemy_bullets);
+    void BulletsHitPlayer(std::forward_list<Bullet> &player_bullets, 
+                          Fighter &player);
+    void EnemiesHitPlayer(std::forward_list<Fighter> &enemies, 
+                          Fighter &player);
     void ClearInvalidObjects(std::forward_list<Fighter> &enemies,
                              std::forward_list<Bullet> &player_bullets,
                              std::forward_list<Bullet> &enemy_bullets);

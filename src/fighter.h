@@ -6,13 +6,12 @@
 class Fighter : public Sprite {
     public:
     Fighter(SDL_Texture *sprite_texture, int speed);
-    Fighter(SDL_Texture *sprite_texture, int speed, 
-            int initial_x, int initial_y);
+    Fighter(SDL_Texture *sprite_texture, int speed, int bullets);
 
-    bool CheckReload();
-    void Fired();
+    bool Fire(bool triggering);
 
     private:
-    int reloadCounter;
+    int reload_counter;
+    int bullet_count;
 };
 
