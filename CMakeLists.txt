@@ -13,7 +13,7 @@ find_package(SDL2_image REQUIRED)
 # Add SDL2 include directory to include path
 include_directories(${SDL2_INCLUDE_DIRS} ${SDL2_IMAGE_INCLUDE_DIRS} src)
 
-add_executable(shooting2D src/main.cpp src/controller.cpp src/renderer.cpp src/game.cpp src/sprite.cpp src/fighter.cpp src/bullet.cpp)
+add_executable(shooting2D src/main.cpp src/controller.cpp src/renderer.cpp src/game.cpp src/sprite.cpp src/fighter.cpp src/bullet.cpp src/background.cpp)
 # Link SDL2 library
 target_link_libraries(shooting2D ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES})
 

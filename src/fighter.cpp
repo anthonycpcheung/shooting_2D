@@ -1,31 +1,36 @@
 #include "fighter.h"
 
-int constexpr RELOAD_LIMIT{8};
-int constexpr UNLIMIT_BULLETS{-1};
-
-Fighter::Fighter(SDL_Texture *sprite_texture, int speed)
+Fighter::Fighter(SDL_Texture *sprite_texture, int speed, int life)
     : Sprite{sprite_texture, speed}, 
-    reload_counter{0}, bullet_count{UNLIMIT_BULLETS}
+    reload_count{0}, life_count{life}
 {}
 
-Fighter::Fighter(SDL_Texture *sprite_texture, int speed, int bullets)
+Fighter::Fighter(SDL_Texture *sprite_texture, int speed, int life, int reload)
     : Sprite{sprite_texture, speed}, 
-    reload_counter{0}, bullet_count{bullets}
+    reload_count{reload}, life_count{life}
 {}
 
 
 bool Fighter::Fire(bool triggering) {
-    if (reload_counter > 0) {
-        --reload_counter;
+    if (reload_count > 0) {
+        --reload_count;
     }
 
-    bool fired = (reload_counter == 0 && triggering && 
-                  (bullet_count > 0 || bullet_count == UNLIMIT_BULLETS));
-    if (fired) {
-        reload_counter = RELOAD_LIMIT;
-        if (bullet_count > 0) {
-            --bullet_count;
-        }
+    return (reload_count <= 0 && triggering);
+}
+
+void Fighter::Reload(int count) {
+    if (reload_count <= 0) {
+        reload_count = count;
     }
-    return fired;
+}
+
+void Fighter::GotHit() {
+    if (life_count > 0) {
+        --life_count;
+    }
+}
+
+bool Fighter::IsDead() {
+    return (life_count <= 0);
 }

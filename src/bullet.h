@@ -6,6 +6,10 @@
 class Bullet : public Sprite {
     public:
     Bullet(SDL_Texture *sprite_texture, int speed);
-    Bullet(SDL_Texture *sprite_texture, int speed, 
-            int initial_x, int initial_y);
+
+    void Hit();
+    bool IsHit() const;
+
+    private:
+    bool hit;
 };

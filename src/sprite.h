@@ -4,28 +4,28 @@
 
 #include "SDL.h"
 #include "SDL_image.h"
-
-enum class MoveDir { UP, DOWN, LEFT, RIGHT };
+#include "renderer.h"
 
 class Sprite {
     public:
     Sprite(SDL_Texture *sprite_texture, int speed);
-    Sprite(SDL_Texture *sprite_texture, int speed, 
-           int initial_x, int initial_y);
+
+    virtual void Render(Renderer &renderer) const;
 
     SDL_Rect GetRect() const;
     SDL_Texture *GetTexture() const;
 
-    void Move(MoveDir dir);
-    void MoveWithBoundFix(MoveDir dir, int bound_width, int bound_height);
-    void SetPosition(int new_x, int new_y);
+    void SetPosition(double new_x, double new_y);
+    void SetSpeed(int new_speed);
     int GetSpeed() const;
-    void SetHit();
-    bool GetHit() const;
 
-    private:
+    void Move(double dx, double dy);
+    void Move(bool up, bool down, bool left, bool right);
+    void BoundAdjust(SDL_Rect const &bound_rect);
+
+    protected:
     SDL_Texture *texture;
-    int x, y, w, h;
+    double x, y;
+    int w, h;
     int speed;
-    bool hit;
 };

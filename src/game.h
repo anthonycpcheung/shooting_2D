@@ -9,6 +9,7 @@
 #include "fighter.h"
 #include "renderer.h"
 #include "sprite.h"
+#include "background.h"
 
 class Game {
     public:
@@ -19,12 +20,17 @@ class Game {
     private:
     Renderer &renderer;
     Controller &controller;
+    SDL_Texture *background_texture;
     SDL_Texture *player_texture;
     SDL_Texture *player_bullet_texture;
     SDL_Texture *enemy_texture;
     SDL_Texture *enemy_bullet_texture;
     int enemySpwanTimer;
     
+    void RenderScreen(Background &bg, Fighter &player,
+                      std::forward_list<Bullet> &player_bullets,
+                      std::forward_list<Fighter> &enemies,
+                      std::forward_list<Bullet> &enemy_bullets);
     void UpdatePlayerObjects(Controller::Actions const &action, Fighter &player, 
                              std::forward_list<Bullet> &bullets);
     void UpdateNonplayerObjects(std::forward_list<Fighter> &enemies,

@@ -4,8 +4,8 @@
 #include "renderer.h"
 #include "SDL_image.h"
 
-Renderer::Renderer(std::size_t const screen_width, 
-                   std::size_t const screen_height,
+Renderer::Renderer(int const screen_width, 
+                   int const screen_height,
                    std::string const &title) 
     : screen_width{screen_width}, 
       screen_height{screen_height},
@@ -81,13 +81,15 @@ SDL_Texture *Renderer::LoadImage(std::string image_filename) {
     return texture;
 }
 
-void Renderer::RenderSprite(Sprite const &sprite) {
-    SDL_Rect dest = sprite.GetRect();
-    SDL_Texture *texture = sprite.GetTexture();
-    SDL_RenderCopy(sdl_renderer, texture, NULL, &dest);
+void Renderer::RenderSprite(SDL_Texture *texture, SDL_Rect const &dest_rect) {
+    SDL_RenderCopy(sdl_renderer, texture, NULL, &dest_rect);
 }
 
-void Renderer::GetScreenSize(std::size_t &width, std::size_t &height) const {
-    width = screen_width;
-    height = screen_height;
+void Renderer::RenderSprite(SDL_Texture *texture, SDL_Rect const &src_rect, 
+                            SDL_Rect const &dest_rect) {
+    SDL_RenderCopy(sdl_renderer, texture, &src_rect, &dest_rect);
+}
+
+SDL_Rect Renderer::GetScreenRect() const {
+    return SDL_Rect{ 0, 0, screen_width, screen_height };
 }
