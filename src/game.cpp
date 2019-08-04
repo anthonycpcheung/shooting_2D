@@ -22,10 +22,13 @@ int constexpr MAX_SPWAN_TIME{90};
 int constexpr MIN_FIRE_TIME{60};
 int constexpr MAX_FIRE_TIME{180};
 
+// Explosion
+int constexpr EXPLOSION_PIC_COUNT{10};
+int constexpr EXPLOSION_PIC_INTERVAL{12};
+
 Game::Game(Renderer &renderer, Controller &controller) 
     : renderer{renderer}, controller{controller}, enemySpwanTimer{90} 
-{
-}
+{}
 
 void Game::Run(std::size_t target_frame_duration) {
     bool running = true;
@@ -36,9 +39,10 @@ void Game::Run(std::size_t target_frame_duration) {
     Uint32 title_timestamp = SDL_GetTicks();
     int frame_count = 0;
 
-    // Random generator for enemy spwan, enemy speed, and enemy position
+    // Random generator for enemy spwan, enemy speed, 
+    // enemy position, and enemy fire
     std::random_device rd;
-    std::mt19937 eng(rd());
+    std::mt19937 eng{rd()};
 
     // Pre-load game objects images
     PreloadTextures();
@@ -49,13 +53,16 @@ void Game::Run(std::size_t target_frame_duration) {
 
     // Initialize player
     Fighter player{player_texture, PLAYER_SPEED, PLAYER_LIFE};
+    player.SetPosition(100, 100);
+
     std::forward_list<Bullet> player_bullets;
 
     // Initialize enemies
     std::forward_list<Fighter> enemies;
     std::forward_list<Bullet> enemy_bullets;
 
-    player.SetPosition(100, 100);
+    // Initialize explosions
+    std::forward_list<Explosion> explosions;
 
     // The main game loop starts here
     // Each loop goes through Input, Update, and Render phases
@@ -69,8 +76,9 @@ void Game::Run(std::size_t target_frame_duration) {
             // Game objects update
             bg.Rolling();
             UpdatePlayerObjects(actions, player, player_bullets);
-            UpdateNonplayerObjects(enemies, enemy_bullets, eng);
-            BulletsHitEnemies(player_bullets, enemies);
+            UpdateEnemyObjects(enemies, enemy_bullets, eng);
+            UpdateExplosions(explosions);
+            BulletsHitEnemies(player_bullets, enemies, explosions);
             BulletsHitBullets(player_bullets, enemy_bullets);
             BulletsHitPlayer(enemy_bullets, player);
             EnemiesHitPlayer(enemies, player);
@@ -78,7 +86,7 @@ void Game::Run(std::size_t target_frame_duration) {
             game_over = player.IsDead();
         }
 
-        RenderScreen(bg, player, player_bullets, enemies, enemy_bullets);
+        RenderScreen(bg, player, player_bullets, enemies, enemy_bullets, explosions);
         
         frame_end = SDL_GetTicks();
 
@@ -106,7 +114,8 @@ void Game::Run(std::size_t target_frame_duration) {
 void Game::RenderScreen(Background &bg, Fighter &player,
                         std::forward_list<Bullet> &player_bullets,
                         std::forward_list<Fighter> &enemies,
-                        std::forward_list<Bullet> &enemy_bullets) {
+                        std::forward_list<Bullet> &enemy_bullets,
+                        std::forward_list<Explosion> &explosions) {
     renderer.BeginRender();
 
     // Render Background
@@ -128,6 +137,11 @@ void Game::RenderScreen(Background &bg, Fighter &player,
     // Render enemy bullets
     for (auto &e_bullet : enemy_bullets) {
         e_bullet.Render(renderer);
+    }
+
+    // Render explosions
+    for (auto &explosion : explosions) {
+        explosion.Render(renderer);
     }
 
     renderer.EndRender();
@@ -161,7 +175,7 @@ void Game::UpdatePlayerObjects(Controller::Actions const &actions,
     }
 }
 
-void Game::UpdateNonplayerObjects(std::forward_list<Fighter> &enemies, 
+void Game::UpdateEnemyObjects(std::forward_list<Fighter> &enemies, 
                                   std::forward_list<Bullet> &bullets,
                                   std::mt19937 &eng) {
     SDL_Rect bound_rect = renderer.GetScreenRect();
@@ -220,18 +234,30 @@ void Game::UpdateNonplayerObjects(std::forward_list<Fighter> &enemies,
     }
 }
 
+void Game::UpdateExplosions(std::forward_list<Explosion> &explosions) {
+    for (auto & explosion : explosions) {
+        explosion.UpdateCounter();
+    }
+
+    explosions.remove_if([](Explosion &e) {
+        return e.Disappeared();
+    });
+}
+
 void Game::PreloadTextures() {
     std::string const PLAYER_IMAGE{"../gfx/player.png"};
     std::string const PLAYER_BULLET_IMAGE{"../gfx/playerBullet.png"};
     std::string const ENEMY_IMAGE("../gfx/enemy.png");
     std::string const ENEMY_BULLET_IMAGE("../gfx/enemyBullet.png");
     std::string const BACKGROUND_IMAGE("../gfx/background.png");
+    std::string const EXPLOSIONS_IMAGE("../gfx/explosions.png");
 
     player_texture = renderer.LoadImage(PLAYER_IMAGE);
     player_bullet_texture = renderer.LoadImage(PLAYER_BULLET_IMAGE);
     enemy_texture = renderer.LoadImage(ENEMY_IMAGE);
     enemy_bullet_texture = renderer.LoadImage(ENEMY_BULLET_IMAGE);
     background_texture = renderer.LoadImage(BACKGROUND_IMAGE);
+    explosions_texture = renderer.LoadImage(EXPLOSIONS_IMAGE);
 }
 
 bool Game::CheckCollision(SDL_Rect const &rect1, SDL_Rect const &rect2) {
@@ -242,13 +268,17 @@ bool Game::CheckCollision(SDL_Rect const &rect1, SDL_Rect const &rect2) {
 }
 
 void Game::BulletsHitEnemies(std::forward_list<Bullet> &bullets, 
-                            std::forward_list<Fighter> &enemies) {
+                            std::forward_list<Fighter> &enemies,
+                            std::forward_list<Explosion> &explosions) {
     for (auto &b : bullets) {
         if (!b.IsHit()) {
             for (auto &e : enemies) {
                 if (!e.IsDead() && CheckCollision(b.GetRect(), e.GetRect())) {
                     b.Hit();
                     e.GotHit();
+
+                    // create Explosion in enemy position
+                    CreateExplosion(e, explosions);
                 }
             }
         }
@@ -324,5 +354,19 @@ void Game::ClearInvalidObjects(std::forward_list<Fighter> &enemies,
         SDL_Rect pb_rect = pb.GetRect();
         return pb.IsHit() || (pb_rect.x > bound_rect.w);
     });
+}
 
+void Game::CreateExplosion(Fighter const &fighter_got_hit, 
+                           std::forward_list<Explosion> &explosions) {
+    Explosion e{explosions_texture, EXPLOSION_PIC_COUNT, EXPLOSION_PIC_INTERVAL};
+    SDL_Rect fighter_rect = fighter_got_hit.GetRect();
+    SDL_Rect explosion_rect = e.GetRect();
+
+    int explosion_x = (fighter_rect.x + fighter_rect.w / 2) - 
+                      (explosion_rect.w / EXPLOSION_PIC_COUNT / 2);
+    int explosion_y = (fighter_rect.y + fighter_rect.h / 2) - 
+                      (explosion_rect.h / 2);
+    e.SetPosition(explosion_x, explosion_y);
+
+    explosions.push_front(std::move(e));
 }

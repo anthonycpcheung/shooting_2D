@@ -10,6 +10,7 @@
 #include "renderer.h"
 #include "sprite.h"
 #include "background.h"
+#include "explosion.h"
 
 class Game {
     public:
@@ -25,19 +26,23 @@ class Game {
     SDL_Texture *player_bullet_texture;
     SDL_Texture *enemy_texture;
     SDL_Texture *enemy_bullet_texture;
+    SDL_Texture *explosions_texture;
     int enemySpwanTimer;
     
     void RenderScreen(Background &bg, Fighter &player,
                       std::forward_list<Bullet> &player_bullets,
                       std::forward_list<Fighter> &enemies,
-                      std::forward_list<Bullet> &enemy_bullets);
+                      std::forward_list<Bullet> &enemy_bullets,
+                      std::forward_list<Explosion> &explosions);
     void UpdatePlayerObjects(Controller::Actions const &action, Fighter &player, 
                              std::forward_list<Bullet> &bullets);
-    void UpdateNonplayerObjects(std::forward_list<Fighter> &enemies,
+    void UpdateEnemyObjects(std::forward_list<Fighter> &enemies,
                                 std::forward_list<Bullet> &bullets,
                                 std::mt19937 &eng);
+    void UpdateExplosions(std::forward_list<Explosion> &explosions);
     void BulletsHitEnemies(std::forward_list<Bullet> &bullets, 
-                          std::forward_list<Fighter> &enemies);
+                          std::forward_list<Fighter> &enemies,
+                          std::forward_list<Explosion> &explosions);
     void BulletsHitBullets(std::forward_list<Bullet> &player_bullets, 
                           std::forward_list<Bullet> &enemy_bullets);
     void BulletsHitPlayer(std::forward_list<Bullet> &player_bullets, 
@@ -47,6 +52,8 @@ class Game {
     void ClearInvalidObjects(std::forward_list<Fighter> &enemies,
                              std::forward_list<Bullet> &player_bullets,
                              std::forward_list<Bullet> &enemy_bullets);
+    void CreateExplosion(Fighter const &fighter_got_hit, 
+                         std::forward_list<Explosion> &explosions);
 
     void PreloadTextures();
 
