@@ -12,7 +12,6 @@ Game::Game(Renderer &renderer, Controller &controller)
 
 void Game::Run(std::size_t target_frame_duration) {
     bool running = true;
-    bool game_over = false;
     Uint32 frame_start;
     Uint32 frame_end;
     Uint32 frame_duration;
@@ -32,12 +31,15 @@ void Game::Run(std::size_t target_frame_duration) {
                                               BG_SCROLLING_SPEED, 
                                               renderer.GetScreenRect());
 
-    // Initialize score text
-    score_text = std::make_unique<GameText>(fonts_texture, FONT_WIDTH);
-    score_text->SetPosition(10, 10);
+    // Initialize game title
+    game_title = std::make_unique<Sprite>(title_texture);
 
-    // Initialize game
-    ResetGame();
+    // Initialize game message
+    game_message = std::make_unique<GameText>(fonts_texture, FONT_WIDTH);
+
+    // Initially, show the game title
+    game_over = true;
+    SetShowTtile();
 
     // The main game loop starts here
     // Each loop goes through Input, Update, and Render phases
@@ -63,15 +65,39 @@ void Game::Run(std::size_t target_frame_duration) {
             UpdateScoreText();
 
             game_over = player->IsDead();
+
+            // Screen Update
+            RenderGamePlayScreen();
         }
         else if (!explosions.empty()) {
             UpdateExplosions();
             ClearInvalidObjects();
+            
+            // Screen Update
+            RenderGamePlayScreen();
+
+            if (explosions.empty()) {
+                // Set back to Title screen
+                SetShowTtile();
+            }
+        }
+        else {
+            if (actions.FIRE) {
+                // Initialize game
+                ResetGame();
+
+                // Screen Update
+                RenderGamePlayScreen();
+            }
+            else {
+                // Scroll the background
+                background->Scroll();
+
+                // Render Title screen
+                RenderGameTitleScreen();
+            }
         }
 
-        // Screen Update
-        RenderScreen();
-        
         frame_end = SDL_GetTicks();
 
         // Keep track of how long each loop through the input/update/render 
@@ -95,11 +121,27 @@ void Game::Run(std::size_t target_frame_duration) {
     }
 }
 
+void Game::SetShowTtile() {
+    auto screen_rect = renderer.GetScreenRect();
+
+    // Set Title
+    auto title_rect = game_title->GetRect();
+    game_title->SetPosition((screen_rect.w / 2) - (title_rect.w / 2),
+                            150);
+
+    // Set message
+    game_message->SetText("PRESS FIRE (SPACE BAR) TO START.");
+    auto message_rect = game_message->GetRect();
+    game_message->SetPosition((screen_rect.w / 2) - (message_rect.w / 2),
+                               screen_rect.h * 2 / 3);
+}
+
 void Game::ResetGame() {
     auto screen_rect = renderer.GetScreenRect();
 
     // Reset score
     score = 0;
+    game_message->SetPosition(10, 10);
     UpdateScoreText();
 
     // Reset enemy swpan timer;
@@ -117,9 +159,26 @@ void Game::ResetGame() {
     enemies.clear();
     enemy_bullets.clear();
     explosions.clear();
+
+    game_over = false;
 }
 
-void Game::RenderScreen() {
+void Game::RenderGameTitleScreen() {
+    renderer.BeginRender();
+
+    // Render Background
+    background->Render(renderer);
+
+    // Render Game Title
+    game_title->Render(renderer);
+
+    // Render press fire message
+    game_message->Render(renderer);
+
+    renderer.EndRender();
+}
+
+void Game::RenderGamePlayScreen() {
     renderer.BeginRender();
 
     // Render Background
@@ -151,7 +210,7 @@ void Game::RenderScreen() {
     }
 
     // Render score
-    score_text->Render(renderer);
+    game_message->Render(renderer);
 
     renderer.EndRender();
 }
@@ -261,6 +320,7 @@ void Game::PreloadTextures() {
     background_texture = renderer.LoadImage(BACKGROUND_IMAGE);
     explosions_texture = renderer.LoadImage(EXPLOSIONS_IMAGE);
     fonts_texture = renderer.LoadImage(FONTS_IMAGE);
+    title_texture = renderer.LoadImage(TITLE_IMAGE);
 }
 
 bool Game::CheckCollision(SDL_Rect const &rect1, SDL_Rect const &rect2) {
@@ -388,5 +448,5 @@ void Game::CreateExplosion(Fighter const &fighter_got_hit) {
 void Game::UpdateScoreText() {
     std::ostringstream ss;
     ss << "SCORE: " << score;
-    score_text->SetText(ss.str());
+    game_message->SetText(ss.str());
 }

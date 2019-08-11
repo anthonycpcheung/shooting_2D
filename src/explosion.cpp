@@ -7,7 +7,10 @@ Explosion::Explosion(SDL_Texture *texture, std::size_t pic_count, int pic_interv
 {}
 
 SDL_Rect Explosion::GetRect() const {
-    return SDL_Rect{static_cast<int>(x), static_cast<int>(y), w / pic_count, h};
+    return SDL_Rect{static_cast<int>(x), 
+                    static_cast<int>(y), 
+                    static_cast<int>(w / pic_count), 
+                    h};
 }
 
 void Explosion::Render(Renderer &renderer) const {

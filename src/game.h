@@ -30,13 +30,16 @@ class Game {
     SDL_Texture *enemy_bullet_texture;
     SDL_Texture *explosions_texture;
     SDL_Texture *fonts_texture;
+    SDL_Texture *title_texture;
 
     int enemySpwanTimer;
     int score;
+    bool game_over;
 
     // Game objects
     std::unique_ptr<Background> background;
-    std::unique_ptr<GameText> score_text;
+    std::unique_ptr<Sprite> game_title;
+    std::unique_ptr<GameText> game_message;
     std::unique_ptr<Fighter> player;
     std::forward_list<std::unique_ptr<Bullet> > player_bullets;
     std::forward_list<std::unique_ptr<Fighter> > enemies;
@@ -44,8 +47,10 @@ class Game {
     std::forward_list<std::unique_ptr<Explosion> > explosions;
     
     void PreloadTextures();
+    void SetShowTtile();
     void ResetGame();
-    void RenderScreen();
+    void RenderGameTitleScreen();
+    void RenderGamePlayScreen();
     void UpdatePlayerObjects(Controller::Actions const &action);
     void UpdateEnemyObjects(std::mt19937 &eng);
     void UpdateExplosions();

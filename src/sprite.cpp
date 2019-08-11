@@ -9,6 +9,10 @@ Sprite::Sprite(SDL_Texture *texture, int speed)
     SDL_QueryTexture(texture, NULL, NULL, &w, &h);
 }
 
+Sprite::Sprite(SDL_Texture *texture)
+    : Sprite{texture, 0}
+{}
+
 void Sprite::Render(Renderer &renderer) const {
     renderer.RenderSprite(texture, GetRect());
 }

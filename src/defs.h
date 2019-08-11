@@ -16,6 +16,7 @@ std::string const ENEMY_BULLET_IMAGE("../gfx/enemyBullet.png");
 std::string const BACKGROUND_IMAGE("../gfx/background.png");
 std::string const EXPLOSIONS_IMAGE("../gfx/explosions.png");
 std::string const FONTS_IMAGE("../gfx/font.png");
+std::string const TITLE_IMAGE("../gfx/gametitle.png");
 
 // Speed in pixels per frame
 int constexpr PLAYER_SPEED{4};

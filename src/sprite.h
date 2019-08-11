@@ -9,6 +9,7 @@
 class Sprite {
     public:
     Sprite(SDL_Texture *sprite_texture, int speed);
+    Sprite(SDL_Texture *sprite_texture);
 
     virtual void Render(Renderer &renderer) const;
 
