@@ -12,7 +12,7 @@ class Sprite {
 
     virtual void Render(Renderer &renderer) const;
 
-    SDL_Rect GetRect() const;
+    virtual SDL_Rect GetRect() const;
     SDL_Texture *GetTexture() const;
 
     void SetPosition(double new_x, double new_y);

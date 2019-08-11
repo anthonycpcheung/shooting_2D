@@ -1,6 +1,7 @@
 #pragma once
 
 #include <forward_list>
+#include <memory>
 #include <random>
 
 #include "SDL.h"
@@ -11,6 +12,7 @@
 #include "sprite.h"
 #include "background.h"
 #include "explosion.h"
+#include "gametext.h"
 
 class Game {
     public:
@@ -27,35 +29,33 @@ class Game {
     SDL_Texture *enemy_texture;
     SDL_Texture *enemy_bullet_texture;
     SDL_Texture *explosions_texture;
-    int enemySpwanTimer;
-    
-    void RenderScreen(Background &bg, Fighter &player,
-                      std::forward_list<Bullet> &player_bullets,
-                      std::forward_list<Fighter> &enemies,
-                      std::forward_list<Bullet> &enemy_bullets,
-                      std::forward_list<Explosion> &explosions);
-    void UpdatePlayerObjects(Controller::Actions const &action, Fighter &player, 
-                             std::forward_list<Bullet> &bullets);
-    void UpdateEnemyObjects(std::forward_list<Fighter> &enemies,
-                                std::forward_list<Bullet> &bullets,
-                                std::mt19937 &eng);
-    void UpdateExplosions(std::forward_list<Explosion> &explosions);
-    void BulletsHitEnemies(std::forward_list<Bullet> &bullets, 
-                          std::forward_list<Fighter> &enemies,
-                          std::forward_list<Explosion> &explosions);
-    void BulletsHitBullets(std::forward_list<Bullet> &player_bullets, 
-                          std::forward_list<Bullet> &enemy_bullets);
-    void BulletsHitPlayer(std::forward_list<Bullet> &player_bullets, 
-                          Fighter &player);
-    void EnemiesHitPlayer(std::forward_list<Fighter> &enemies, 
-                          Fighter &player);
-    void ClearInvalidObjects(std::forward_list<Fighter> &enemies,
-                             std::forward_list<Bullet> &player_bullets,
-                             std::forward_list<Bullet> &enemy_bullets);
-    void CreateExplosion(Fighter const &fighter_got_hit, 
-                         std::forward_list<Explosion> &explosions);
+    SDL_Texture *fonts_texture;
 
+    int enemySpwanTimer;
+    int score;
+
+    // Game objects
+    std::unique_ptr<Background> background;
+    std::unique_ptr<GameText> score_text;
+    std::unique_ptr<Fighter> player;
+    std::forward_list<std::unique_ptr<Bullet> > player_bullets;
+    std::forward_list<std::unique_ptr<Fighter> > enemies;
+    std::forward_list<std::unique_ptr<Bullet> > enemy_bullets;
+    std::forward_list<std::unique_ptr<Explosion> > explosions;
+    
     void PreloadTextures();
+    void ResetGame();
+    void RenderScreen();
+    void UpdatePlayerObjects(Controller::Actions const &action);
+    void UpdateEnemyObjects(std::mt19937 &eng);
+    void UpdateExplosions();
+    void BulletsHitEnemies();
+    void BulletsHitBullets();
+    void BulletsHitPlayer();
+    void EnemiesHitPlayer();
+    void ClearInvalidObjects();
+    void CreateExplosion(Fighter const &fighter_got_hit);
+    void UpdateScoreText();
 
     bool CheckCollision(SDL_Rect const &rect1, SDL_Rect const &rect2);
 };

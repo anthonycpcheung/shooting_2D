@@ -7,7 +7,7 @@ class Background : public Sprite {
     Background(SDL_Texture *texture, int rollingSpeed, 
                SDL_Rect const &screen_rect);
     void Render(Renderer &renderer) const;
-    void Rolling();
+    void Scroll();
 
     private:
     SDL_Rect screen_rect;

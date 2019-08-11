@@ -12,7 +12,7 @@ void Background::Render(Renderer &renderer) const {
     }
 }
 
-void Background::Rolling() {
+void Background::Scroll() {
     x -= speed;
     if (x < -screen_rect.w) {
         x = 0;

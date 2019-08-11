@@ -4,13 +4,14 @@
 
 class Explosion : public Sprite {
     public:
-    Explosion(SDL_Texture *texture, int pic_count, int pic_interval);
+    Explosion(SDL_Texture *texture, std::size_t pic_count, int pic_interval);
     void Render(Renderer &renderer) const;
+    SDL_Rect GetRect() const;
     void UpdateCounter();
     bool Disappeared();
 
     private:
-    int pic_count;
+    std::size_t pic_count;
     int pic_interval;
     int counter;
 };
