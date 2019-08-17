@@ -130,7 +130,7 @@ void Game::SetShowTtile() {
                             150);
 
     // Set message
-    game_message->SetText("PRESS FIRE (SPACE BAR) TO START.");
+    game_message->SetText("PRESS FIRE (LEFT CTRL) TO START.");
     auto message_rect = game_message->GetRect();
     game_message->SetPosition((screen_rect.w / 2) - (message_rect.w / 2),
                                screen_rect.h * 2 / 3);

@@ -42,7 +42,7 @@ void Controller::HandleKeyDown(SDL_Keycode const &keycode) {
         actions.RIGHT = true;
     }
 
-    if (keycode == SDLK_SPACE) {
+    if (keycode == SDLK_LCTRL) {
         actions.FIRE = true;
     }
 }
@@ -64,7 +64,7 @@ void Controller::HandleKeyUp(SDL_Keycode const &keycode) {
         actions.RIGHT = false;
     }
 
-    if (keycode == SDLK_SPACE) {
+    if (keycode == SDLK_LCTRL) {
         actions.FIRE = false;
     }
 }
