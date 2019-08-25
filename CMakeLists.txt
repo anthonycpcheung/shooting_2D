@@ -23,7 +23,10 @@ add_executable(shooting2D src/main.cpp
                           src/background.cpp 
                           src/explosion.cpp 
                           src/gametext.cpp)
+
 # Link SDL2 library
+string(STRIP ${SDL2_LIBRARIES} SDL2_LIBRARIES)
+string(STRIP ${SDL2_IMAGE_LIBRARIES} SDL2_IMAGE_LIBRARIES)
 target_link_libraries(shooting2D ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES})
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
