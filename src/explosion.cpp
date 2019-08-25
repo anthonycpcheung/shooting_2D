@@ -35,5 +35,5 @@ void Explosion::UpdateCounter() {
 
 bool Explosion::Disappeared() {
     // if the last pic of explosion shown, then this is the end of explosion
-    return (counter == pic_count * pic_interval);
+    return (counter == pic_interval * static_cast<int>(pic_count));
 }

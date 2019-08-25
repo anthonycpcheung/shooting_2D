@@ -10,8 +10,6 @@ Renderer::Renderer(int const screen_width,
     : screen_width{screen_width}, 
       screen_height{screen_height},
       game_title{title} {
-    const int rendererFlags{SDL_RENDERER_ACCELERATED};
-
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::cerr << "SDL cound not initialize." << std::endl;

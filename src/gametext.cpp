@@ -9,7 +9,7 @@ void GameText::Render(Renderer &renderer) const {
     auto pos_y = static_cast<int>(y);
 
     // loop through each character in text and render it 
-    for (auto i = 0; i < text.length(); ++i) {
+    for (std::size_t i = 0; i < text.length(); ++i) {
         auto c = text[i];
         if (c >= ' ' && c <= 'Z') {
             auto font_x = (c - ' ') * font_width;

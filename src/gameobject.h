@@ -39,7 +39,7 @@ class GameObject {
 
     protected:
     SDL_Texture *texture;
+    int speed;
     double x, y;
     int w, h;
-    int speed;
 };
