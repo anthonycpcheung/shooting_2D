@@ -32,7 +32,7 @@ void Game::Run(std::size_t target_frame_duration) {
                                               renderer.GetScreenRect());
 
     // Initialize game title
-    game_title = std::make_unique<Sprite>(title_texture);
+    game_title = std::make_unique<GameObject>(title_texture);
 
     // Initialize game message
     game_message = std::make_unique<GameText>(fonts_texture, FONT_WIDTH);
@@ -64,6 +64,8 @@ void Game::Run(std::size_t target_frame_duration) {
             ClearInvalidObjects();
             UpdateScoreText();
 
+            // If the player is killed, the game is over.
+            // Mark the game_over flag to make the game go back to title.
             game_over = player->IsDead();
 
             // Screen Update
@@ -76,12 +78,15 @@ void Game::Run(std::size_t target_frame_duration) {
             // Screen Update
             RenderGamePlayScreen();
 
-            if (explosions.empty()) {
+            // If the game is over, it will not go back to title
+            // immediately, it will wait for all explosions disappears.
+            if (explosions.empty()) {                
                 // Set back to Title screen
                 SetShowTtile();
             }
         }
         else {
+            // When user press the FIRE, the game will start
             if (actions.FIRE) {
                 // Initialize game
                 ResetGame();
@@ -229,6 +234,7 @@ void Game::UpdatePlayerObjects(Controller::Actions const &actions) {
 
     // Fire new bullet
     if (player->Fire(actions.FIRE)) {
+        // The new bullet appears at the right-center of the player
         auto new_bullet = std::make_unique<Bullet>(player_bullet_texture, 
                                                    BULLET_SPEED);
         auto player_rect_new = player->GetRect();
@@ -238,6 +244,8 @@ void Game::UpdatePlayerObjects(Controller::Actions const &actions) {
                        (player_rect_new.h - bullet_rect.h) / 2;
         new_bullet->SetPosition(bullet_x, bullet_y);
         player_bullets.push_front(std::move(new_bullet));
+
+        // reset the reload counter of player
         player->Reload(PLAYER_RELOAD);
     }
 }
@@ -273,6 +281,7 @@ void Game::UpdateEnemyObjects(std::mt19937 &eng) {
 
         int max_y = bound_rect.h - new_enemy->GetRect().h;
 
+        // The initial y position of new enemy is uniform distributed
         std::uniform_int_distribution<int> random_position(0, max_y);
         int pos_y = random_position(eng);
 
@@ -282,6 +291,7 @@ void Game::UpdateEnemyObjects(std::mt19937 &eng) {
         new_enemy->SetPosition(bound_rect.w, random_position(eng));
         enemies.push_front(std::move(new_enemy));
 
+        // reset the enemy spwan count randomly
         enemySpwanTimer = random_spwan(eng);
     }
 
@@ -290,6 +300,7 @@ void Game::UpdateEnemyObjects(std::mt19937 &eng) {
         auto enemy_rect = enemy->GetRect();
 
         if (enemy->Fire(true)) {
+            // The new bullet appears at the left-center of the enemy
             auto new_bullet = std::make_unique<Bullet>(enemy_bullet_texture, 
                                                        BULLET_SPEED);
             auto bullet_rect = new_bullet->GetRect();
@@ -304,9 +315,11 @@ void Game::UpdateEnemyObjects(std::mt19937 &eng) {
 
 void Game::UpdateExplosions() {
     for (auto & explosion : explosions) {
+        // update the counter of the explosion
         explosion->UpdateCounter();
     }
 
+    // remove the explosion if it is disappeared
     explosions.remove_if([](std::unique_ptr<Explosion> &e) {
         return e->Disappeared();
     });
@@ -324,6 +337,7 @@ void Game::PreloadTextures() {
 }
 
 bool Game::CheckCollision(SDL_Rect const &rect1, SDL_Rect const &rect2) {
+    // check whether the rectangle of the two objects are intercepted
     return (std::max(rect1.x, rect2.x) 
                 < std::min(rect1.x + rect1.w, rect2.x + rect2.w)) && 
            (std::max(rect1.y, rect2.y) 
@@ -335,6 +349,8 @@ void Game::BulletsHitEnemies() {
         if (!b->IsHit()) {
             for (auto &e : enemies) {
                 if (!e->IsDead() && CheckCollision(b->GetRect(), e->GetRect())) {
+                    // player bullet hits an enemy
+                    // update the states of bullet and enemy
                     b->Hit();
                     e->GotHit();
 
@@ -357,6 +373,8 @@ void Game::BulletsHitBullets() {
             for (auto &eb : enemy_bullets) {
                 if (!eb->IsHit() && CheckCollision(pb->GetRect(), eb->GetRect())) 
                 {
+                    // player bullet and enemy bullet collide
+                    // update the states of bullets
                     pb->Hit();
                     eb->Hit();
 
@@ -371,10 +389,12 @@ void Game::BulletsHitPlayer() {
     if (!player->IsDead()) {
         for (auto &b : enemy_bullets) {
             if (!b->IsHit() && CheckCollision(b->GetRect(), player->GetRect())) {
+                // enemy bullet hits player
+                // update the states of bullet and player
                 b->Hit();
                 player->GotHit();
 
-                    // create Explosion at player position
+                // create Explosion at player position
                 CreateExplosion(*player);
 
                 break;
@@ -387,6 +407,8 @@ void Game::EnemiesHitPlayer() {
     if (!player->IsDead()) {
         for (auto &e : enemies) {
             if (!e->IsDead() && CheckCollision(e->GetRect(), player->GetRect())) {
+                // player and enemy collide
+                // update the states of player and enemy
                 e->GotHit();
                 player->GotHit();
 
@@ -411,7 +433,7 @@ void Game::ClearInvalidObjects() {
         return e->IsDead() || ((e_rect.x + e_rect.w) <= 0);
     });
 
-    // Check whether the bullet got hit or flied out the screen.
+    // Check whether the enemy bullet got hit or flied out the screen.
     // If yes, remove it
     enemy_bullets.remove_if(
     [](std::unique_ptr<Bullet> &eb) {
@@ -419,7 +441,7 @@ void Game::ClearInvalidObjects() {
         return eb->IsHit() || ((eb_rect.x + eb_rect.w) <= 0);
     });
 
-    // Check whether the bullet got hit or flied out the screen.
+    // Check whether the player bullet got hit or flied out the screen.
     // If yes, remove it
     player_bullets.remove_if(
     [bound_rect](std::unique_ptr<Bullet> &pb) {

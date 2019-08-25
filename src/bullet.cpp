@@ -1,7 +1,7 @@
 #include "bullet.h"
 
 Bullet::Bullet(SDL_Texture *sprite_texture, int speed)
-    : Sprite{sprite_texture, speed}, hit{false}
+    : GameObject{sprite_texture, speed}, hit{false}
 {}
 
 void Bullet::Hit() {

@@ -1,48 +1,48 @@
 #include <cmath>
 
-#include "sprite.h"
+#include "gameobject.h"
 
-Sprite::Sprite(SDL_Texture *texture, int speed)
+GameObject::GameObject(SDL_Texture *texture, int speed)
     : texture{texture}, speed{speed}, x{0}, y{0}
 {
-    // set width and height of sprite from the image
+    // set width and height of GameObject from the image
     SDL_QueryTexture(texture, NULL, NULL, &w, &h);
 }
 
-Sprite::Sprite(SDL_Texture *texture)
-    : Sprite{texture, 0}
+GameObject::GameObject(SDL_Texture *texture)
+    : GameObject{texture, 0}
 {}
 
-void Sprite::Render(Renderer &renderer) const {
+void GameObject::Render(Renderer &renderer) const {
     renderer.RenderSprite(texture, GetRect());
 }
 
-SDL_Rect Sprite::GetRect() const {
+SDL_Rect GameObject::GetRect() const {
     return SDL_Rect{static_cast<int>(x), static_cast<int>(y), w, h};
 }
 
-SDL_Texture *Sprite::GetTexture() const {
+SDL_Texture *GameObject::GetTexture() const {
     return texture;
 }
 
-void Sprite::SetPosition(double new_x, double new_y) {
+void GameObject::SetPosition(double new_x, double new_y) {
     x = new_x;
     y = new_y;
 }
-void Sprite::SetSpeed(int new_speed) {
+void GameObject::SetSpeed(int new_speed) {
     speed = new_speed;
 }
 
-int Sprite::GetSpeed() const {
+int GameObject::GetSpeed() const {
     return speed;
 }
 
-void Sprite::Move(double dx, double dy) {
+void GameObject::Move(double dx, double dy) {
     x += dx;
     y += dy;
 }
 
-void Sprite::Move(bool up, bool down, bool left, bool right) {
+void GameObject::Move(bool up, bool down, bool left, bool right) {
     double dx = 0;
     double dy = 0;
 
@@ -51,6 +51,8 @@ void Sprite::Move(bool up, bool down, bool left, bool right) {
     dx = (left) ? (dx - 1) : dx;
     dx = (right) ? (dx + 1) : dx;
 
+    // if the object is moving diagonally, the displacement is calculated by 
+    // pythagoras theorem.
     double normalize_factor = 1;
     if (dx != 0 && dy != 0) {
         normalize_factor = sqrt((dx * dx) + (dy * dy));
@@ -60,7 +62,7 @@ void Sprite::Move(bool up, bool down, bool left, bool right) {
     y += dy / normalize_factor * speed;
 }
 
-void Sprite::BoundAdjust(SDL_Rect const &bound_rect) {
+void GameObject::BoundAdjust(SDL_Rect const &bound_rect) {
     if (x < 0) {
         x = 0;
     }

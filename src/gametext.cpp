@@ -1,7 +1,7 @@
 #include "gametext.h"
 
 GameText::GameText(SDL_Texture *texture, int font_width)
-    : Sprite(texture, 0), font_width{font_width}
+    : GameObject(texture, 0), font_width{font_width}
 {}
 
 void GameText::Render(Renderer &renderer) const {

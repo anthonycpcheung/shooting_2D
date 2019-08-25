@@ -1,7 +1,7 @@
 #include "explosion.h"
 
 Explosion::Explosion(SDL_Texture *texture, std::size_t pic_count, int pic_interval)
-    : Sprite{texture, 0}, 
+    : GameObject{texture, 0}, 
     pic_count{pic_count}, pic_interval{pic_interval}, 
     counter{0}
 {}
@@ -14,6 +14,7 @@ SDL_Rect Explosion::GetRect() const {
 }
 
 void Explosion::Render(Renderer &renderer) const {
+    // according to current counter, pick the correct explosion pic and show
     int pic_width = w / pic_count;
     int pic_num = counter / pic_count;
     SDL_Rect src_rect {(pic_num * pic_width),
@@ -33,5 +34,6 @@ void Explosion::UpdateCounter() {
 }
 
 bool Explosion::Disappeared() {
+    // if the last pic of explosion shown, then this is the end of explosion
     return (counter == pic_count * pic_interval);
 }

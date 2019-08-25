@@ -1,12 +1,12 @@
 #include "fighter.h"
 
-Fighter::Fighter(SDL_Texture *sprite_texture, int speed, int life)
-    : Sprite{sprite_texture, speed}, 
+Fighter::Fighter(SDL_Texture *texture, int speed, int life)
+    : GameObject{texture, speed}, 
     reload_count{0}, life_count{life}
 {}
 
-Fighter::Fighter(SDL_Texture *sprite_texture, int speed, int life, int reload)
-    : Sprite{sprite_texture, speed}, 
+Fighter::Fighter(SDL_Texture *texture, int speed, int life, int reload)
+    : GameObject{texture, speed}, 
     reload_count{reload}, life_count{life}
 {}
 

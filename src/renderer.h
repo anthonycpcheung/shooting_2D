@@ -20,14 +20,18 @@ class Renderer {
     // Update game status to Title bar
     void UpdateWindowTitle(int fps);
 
-    // Render objects of the game
+    // Enclose the rendering of objects of the game
     void BeginRender();
     void EndRender();
+
+    // Render the whole SDL texture
     void RenderSprite(SDL_Texture *texture, SDL_Rect const &dest_rect);
+
+    // Render a specific area of SDL texture
     void RenderSprite(SDL_Texture *texture, SDL_Rect const &src_rect, 
                       SDL_Rect const &dest_rect);
 
-    // Create a sprite from an image file
+    // Load an image file as SDL texture
     SDL_Texture *LoadImage(std::string image_filename);
 
     // Get screen dimension

@@ -17,7 +17,7 @@ add_executable(shooting2D src/main.cpp
                           src/controller.cpp 
                           src/renderer.cpp 
                           src/game.cpp 
-                          src/sprite.cpp 
+                          src/gameobject.cpp 
                           src/fighter.cpp 
                           src/bullet.cpp 
                           src/background.cpp 
