@@ -11,8 +11,8 @@ class GameText : public GameObject {
     public:
     GameText(SDL_Texture *texture, int font_width);
 
-    void Render(Renderer &renderer) const;
-    SDL_Rect GetRect() const;
+    void Render(Renderer &renderer) const override;
+    SDL_Rect GetRect() const override;
 
     // Set the text string to be displayed
     void SetText(std::string const &text);
